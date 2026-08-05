@@ -22,7 +22,34 @@ const getTasksByOwner = async (owner) => {
   return tasks;
 };
 
+const getTaskByIdAndOwner = async ({ taskId, owner }) => {
+  const task = await Task.findOne({
+    _id: taskId,
+    owner,
+  });
+
+  return task;
+};
+
+const updateTaskByIdAndOwner = async ({ taskId, owner, updates }) => {
+  const task = await Task.findOneAndUpdate(
+    {
+      _id: taskId,
+      owner,
+    },
+    updates,
+    {
+      new: true,
+      runValidators: true,
+    }
+  );
+
+  return task;
+};
+
 module.exports = {
   createTask,
   getTasksByOwner,
+  getTaskByIdAndOwner,
+  updateTaskByIdAndOwner,
 };

@@ -1,5 +1,20 @@
 const bcrypt = require("bcryptjs");
 const User = require("../models/User");
+const jwt = require("jsonwebtoken");
+
+const generateToken = (userId) => {
+  if (!process.env.JWT_SECRET) {
+    throw new Error("JWT secret is not configured");
+  }
+
+  return jwt.sign(
+    { id: userId },
+    process.env.JWT_SECRET,
+    {
+      expiresIn: "7d",
+    }
+  );
+};
 
 const registerUser = async ({ name, email, password }) => {
   // Check if the email already exists
@@ -19,9 +34,50 @@ const registerUser = async ({ name, email, password }) => {
     password: hashedPassword,
   });
 
-  return user;
+  return {
+    id: user._id,
+    name: user.name,
+    email: user.email,
+    avatar: user.avatar,
+    createdAt: user.createdAt,
+    updatedAt: user.updatedAt,
+  };
+};
+
+const loginUser = async ({ email, password }) => {
+  // Find the user and include the password
+  const user = await User.findOne({ email }).select("+password");
+
+  // Check if the user exists
+  if (!user) {
+    throw new Error("Invalid email or password");
+  }
+
+  // Compare the entered password with the hashed password
+  const isMatch = await bcrypt.compare(password, user.password);
+
+  // If passwords don't match
+  if (!isMatch) {
+    throw new Error("Invalid email or password");
+  }
+
+  // Generate JWT token
+  const token = generateToken(user._id);
+
+  return {
+    token,
+    user: {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      avatar: user.avatar,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    },
+  };
 };
 
 module.exports = {
   registerUser,
+  loginUser,
 };

@@ -1,4 +1,9 @@
-const { createTask, getTasksByOwner } = require("../services/taskService");
+const {
+  createTask,
+  getTasksByOwner,
+  getTaskByIdAndOwner,
+  updateTaskByIdAndOwner,
+} = require("../services/taskService");
 
 const create = async (req, res) => {
   try {
@@ -37,7 +42,63 @@ const getMyTasks = async (req, res) => {
   }
 };
 
+const getTask = async (req, res) => {
+  try {
+    const task = await getTaskByIdAndOwner({
+      taskId: req.params.id,
+      owner: req.user._id,
+    });
+
+    if (!task) {
+      return res.status(404).json({
+        success: false,
+        message: "Task not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      task,
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: "Invalid task id",
+    });
+  }
+};
+
+const updateTask = async (req, res) => {
+  try {
+    const task = await updateTaskByIdAndOwner({
+      taskId: req.params.id,
+      owner: req.user._id,
+      updates: req.body,
+    });
+
+    if (!task) {
+      return res.status(404).json({
+        success: false,
+        message: "Task not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Task updated successfully",
+      task,
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
   create,
   getMyTasks,
+  getTask,
+  updateTask,
 };
