@@ -3,6 +3,7 @@ const {
   getTasksByOwner,
   getTaskByIdAndOwner,
   updateTaskByIdAndOwner,
+  deleteTaskByIdAndOwner,
 } = require("../services/taskService");
 
 const create = async (req, res) => {
@@ -27,15 +28,17 @@ const create = async (req, res) => {
 
 const getMyTasks = async (req, res) => {
   try {
-    const tasks = await getTasksByOwner(req.user._id);
-
+    const tasks = await getTasksByOwner(req.user._id, req.query);
+       console.log(req.query);
     res.status(200).json({
       success: true,
       count: tasks.length,
       tasks,
     });
   } catch (error) {
-    res.status(500).json({
+    const statusCode = error.message.startsWith("Invalid") ? 400 : 500;
+
+    res.status(statusCode).json({
       success: false,
       message: error.message,
     });
@@ -96,9 +99,36 @@ const updateTask = async (req, res) => {
   }
 };
 
+const deleteTask = async (req, res) => {
+  try {
+    const task = await deleteTaskByIdAndOwner({
+      taskId: req.params.id,
+      owner: req.user._id,
+    });
+
+    if (!task) {
+      return res.status(404).json({
+        success: false,
+        message: "Task not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Task deleted successfully",
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: "Invalid task id",
+    });
+  }
+};
+
 module.exports = {
   create,
   getMyTasks,
   getTask,
   updateTask,
+  deleteTask,
 };
