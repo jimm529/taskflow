@@ -45,6 +45,14 @@ const getTasksByOwner = async (owner, filters = {}) => {
 
     query.priority = filters.priority;
   }
+   
+  // Search by title
+  if (filters.search) {
+    query.title = {
+      $regex: filters.search,
+      $options: "i",
+    };
+  }
 
   // Sorting
   const sort = sortOptions[filters.sort] || sortOptions.newest;
