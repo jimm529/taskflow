@@ -3,9 +3,12 @@ const { register, login, getMe } = require("../controllers/authController");
 const { protect } = require("../middleware/authMiddleware");
 
 const router = express.Router();
-
+const {
+  registerValidation,
+  validate,
+} = require("../validators/authValidator");
 // Register User
-router.post("/register", register);
+router.post("/register", registerValidation, validate, register);
 
 // Login User
 router.post("/login", login);
