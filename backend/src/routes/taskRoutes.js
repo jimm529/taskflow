@@ -7,10 +7,8 @@ const {
   deleteTask,
 } = require("../controllers/taskController");
 const { protect } = require("../middleware/authMiddleware");
-const {
-  createTaskValidation,
-  validate,
-} = require("../validators/taskValidator");
+const { createTaskValidation } = require("../validators/taskValidator");
+const { validate } = require("../middleware/validationMiddleware");
 const router = express.Router();
 
 router.get("/", protect, getMyTasks);
