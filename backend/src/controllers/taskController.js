@@ -28,13 +28,13 @@ const create = async (req, res) => {
 
 const getMyTasks = async (req, res) => {
   try {
-    const tasks = await getTasksByOwner(req.user._id, req.query);
-      // console.log(req.query);
-    res.status(200).json({
-      success: true,
-      count: tasks.length,
-      tasks,
-    });
+    const result = await getTasksByOwner(req.user._id, req.query);
+
+res.status(200).json({
+  success: true,
+  count: result.total,
+  tasks: result.tasks,
+});
   } catch (error) {
     const statusCode = error.message.startsWith("Invalid") ? 400 : 500;
 

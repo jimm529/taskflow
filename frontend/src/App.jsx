@@ -9,6 +9,11 @@ function App() {
   const [user, setUser] = useState(null);
   const [tasks, setTasks] = useState([]);
   const [showTaskForm, setShowTaskForm] = useState(false);
+  const [taskTitle, setTaskTitle] = useState("");
+const [taskDescription, setTaskDescription] = useState("");
+const [taskStatus, setTaskStatus] = useState("todo");
+const [taskPriority, setTaskPriority] = useState("medium");
+const [totalTasks, setTotalTasks] = useState(0);
   const fetchUser = async () => {
   const token = localStorage.getItem("token");
 
@@ -68,6 +73,7 @@ const fetchTasks = async () => {
     }
 
     setTasks(data.tasks);
+    setTotalTasks(data.count);
   } catch (error) {
     console.error("FAILED TO FETCH TASKS:", error);
   }
@@ -112,7 +118,49 @@ useEffect(() => {
       setLoading(false);
     }
   };
+    const createTask = async () => {
+  const token = localStorage.getItem("token");
 
+  if (!token) {
+    console.error("No token found");
+    return;
+  }
+
+  try {
+    const response = await fetch("http://localhost:5000/api/tasks", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        title: taskTitle,
+        description: taskDescription,
+        status: taskStatus,
+        priority: taskPriority,
+      }),
+    });
+
+    const data = await response.json();
+
+    console.log("CREATE TASK RESPONSE:", data);
+
+    if (!response.ok) {
+      console.error("CREATE TASK FAILED:", data.message);
+      return;
+    }
+
+    await fetchTasks();
+
+    setTaskTitle("");
+    setTaskDescription("");
+    setTaskStatus("todo");
+    setTaskPriority("medium");
+    setShowTaskForm(false);
+  } catch (error) {
+    console.error("CREATE TASK ERROR:", error);
+  }
+};
   return (
     
   <>
@@ -153,7 +201,7 @@ useEffect(() => {
     <section className="stats">
       <div className="stat-card">
       <h3>Total Tasks</h3>
-   <strong>{tasks.length}</strong>
+   <strong>{totalTasks}</strong>
     </div>
 
       <div className="stat-card">
@@ -167,17 +215,79 @@ useEffect(() => {
       </div>
     </section>
 
-    <section className="tasks-section">
+   <section className="tasks-section">
+
   <div className="tasks-header">
     <h2>Recent Tasks</h2>
 
-   <button
-  className="create-task-btn"
-  onClick={() => setShowTaskForm(true)}
->
-  + Create Task
-</button>
+    <button
+      className="create-task-btn"
+      onClick={() => setShowTaskForm(true)}
+    >
+      + Create Task
+    </button>
   </div>
+
+  {showTaskForm && (
+    <div className="create-task-form">
+
+      <input
+        type="text"
+        placeholder="Task title"
+        value={taskTitle}
+        onChange={(e) => setTaskTitle(e.target.value)}
+      />
+
+      <textarea
+        placeholder="Task description"
+        value={taskDescription}
+        onChange={(e) => setTaskDescription(e.target.value)}
+      />
+
+      <div className="task-options">
+
+        <select
+          value={taskStatus}
+          onChange={(e) => setTaskStatus(e.target.value)}
+        >
+          <option value="todo">Todo</option>
+          <option value="in-progress">In Progress</option>
+          <option value="completed">Completed</option>
+        </select>
+
+        <select
+          value={taskPriority}
+          onChange={(e) => setTaskPriority(e.target.value)}
+        >
+          <option value="low">Low</option>
+          <option value="medium">Medium</option>
+          <option value="high">High</option>
+        </select>
+
+      </div>
+
+      <div className="task-form-actions">
+
+        <button
+  type="button"
+  className="submit-task-btn"
+  onClick={createTask}
+>
+  Create Task
+</button>
+
+        <button
+          type="button"
+          className="cancel-task-btn"
+          onClick={() => setShowTaskForm(false)}
+        >
+          Cancel
+        </button>
+
+      </div>
+
+    </div>
+  )}
 
   {tasks.length === 0 ? (
     <p>No tasks yet.</p>
@@ -185,16 +295,19 @@ useEffect(() => {
     <div className="task-list">
       {tasks.map((task) => (
         <div className="task-item" key={task._id}>
+
           <div>
             <h3>{task.title}</h3>
             <p>{task.description}</p>
           </div>
 
           <span>{task.status}</span>
+
         </div>
       ))}
     </div>
   )}
+
 </section>
   </main>
 </div>

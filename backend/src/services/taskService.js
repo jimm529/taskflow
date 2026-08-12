@@ -3,19 +3,26 @@ const Task = require("../models/Task");
 const allowedStatuses = ["todo", "in-progress", "completed"];
 const allowedPriorities = ["low", "medium", "high"];
 
-const createTask = async ({ title, description, priority, dueDate, owner }) => {
+const createTask = async ({
+  title,
+  description,
+  status,
+  priority,
+  dueDate,
+  owner,
+}) => {
   if (!title || !title.trim()) {
     throw new Error("Task title is required");
   }
 
-  const task = await Task.create({
-    title,
-    description,
-    priority,
-    dueDate,
-    owner,
-  });
-
+ const task = await Task.create({
+  title,
+  description,
+  status,
+  priority,
+  dueDate,
+  owner,
+});
   return task;
 };
 
@@ -64,11 +71,16 @@ const getTasksByOwner = async (owner, filters = {}) => {
 
   // Fetch tasks
   const tasks = await Task.find(query)
-    .sort(sort)
-    .skip(skip)
-    .limit(limit);
+  .sort(sort)
+  .skip(skip)
+  .limit(limit);
 
-  return tasks;
+const total = await Task.countDocuments(query);
+
+return {
+  tasks,
+  total,
+};
 };
 
 const getTaskByIdAndOwner = async ({ taskId, owner }) => {
