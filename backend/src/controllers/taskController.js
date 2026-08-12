@@ -29,7 +29,7 @@ const create = async (req, res) => {
 const getMyTasks = async (req, res) => {
   try {
     const tasks = await getTasksByOwner(req.user._id, req.query);
-       console.log(req.query);
+      // console.log(req.query);
     res.status(200).json({
       success: true,
       count: tasks.length,

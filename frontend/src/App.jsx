@@ -7,8 +7,9 @@ function App() {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState(null);
+  const [tasks, setTasks] = useState([]);
+  const [showTaskForm, setShowTaskForm] = useState(false);
   const fetchUser = async () => {
-    // console.log("fetchUser is running");
   const token = localStorage.getItem("token");
 
   if (!token) {
@@ -24,6 +25,7 @@ function App() {
 
     const data = await response.json();
 
+
     if (!response.ok) {
       localStorage.removeItem("token");
       return;
@@ -34,10 +36,47 @@ function App() {
     console.error("Failed to fetch user:", error);
   }
 };
- useEffect(() => {
-  fetchUser();
-}, []);
 
+const fetchTasks = async () => {
+  console.log("FETCH TASKS STARTED");
+
+  const token = localStorage.getItem("token");
+  console.log("TOKEN EXISTS:", !!token);
+
+  if (!token) {
+    return;
+  }
+
+  try {
+    const response = await fetch("http://localhost:5000/api/tasks", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    console.log("TASK RESPONSE STATUS:", response.status);
+
+    const data = await response.json();
+
+    console.log("TASK RESPONSE DATA:", data);
+    console.log("TASKS:", data.tasks);
+    console.log("TASK COUNT:", data.tasks?.length);
+
+    if (!response.ok) {
+      console.error(data.message);
+      return;
+    }
+
+    setTasks(data.tasks);
+  } catch (error) {
+    console.error("FAILED TO FETCH TASKS:", error);
+  }
+};
+
+useEffect(() => {
+  fetchUser();
+  fetchTasks();
+}, []);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -78,19 +117,87 @@ function App() {
     
   <>
     {user ? (
-      <div className="dashboard">
-        <h1>Welcome, {user.name}</h1>
-        <p>{user.email}</p>
+    <div className="dashboard">
+  <aside className="sidebar">
+    <h2>TaskFlow</h2>
 
-        <button
-          onClick={() => {
-            localStorage.removeItem("token");
-            setUser(null);
-          }}
-        >
-          Logout
-        </button>
+    <nav>
+      <button>Dashboard</button>
+      <button>My Tasks</button>
+      <button>Projects</button>
+    </nav>
+
+    <button
+      className="logout-btn"
+      onClick={() => {
+        localStorage.removeItem("token");
+        setUser(null);
+      }}
+    >
+      Logout
+    </button>
+  </aside>
+
+  <main className="main-content">
+    <header className="dashboard-header">
+      <div>
+        <h1>Dashboard</h1>
+        <p>Welcome back, {user.name}</p>
       </div>
+
+      <div className="user-info">
+        <span>{user.name}</span>
+      </div>
+    </header>
+
+    <section className="stats">
+      <div className="stat-card">
+      <h3>Total Tasks</h3>
+   <strong>{tasks.length}</strong>
+    </div>
+
+      <div className="stat-card">
+        <h3>In Progress</h3>
+        <strong>{tasks.filter((task) => task.status === "in-progress").length}</strong>
+      </div>
+
+      <div className="stat-card">
+        <h3>Completed</h3>
+        <strong> {tasks.filter((task) => task.status === "completed").length}</strong>
+      </div>
+    </section>
+
+    <section className="tasks-section">
+  <div className="tasks-header">
+    <h2>Recent Tasks</h2>
+
+   <button
+  className="create-task-btn"
+  onClick={() => setShowTaskForm(true)}
+>
+  + Create Task
+</button>
+  </div>
+
+  {tasks.length === 0 ? (
+    <p>No tasks yet.</p>
+  ) : (
+    <div className="task-list">
+      {tasks.map((task) => (
+        <div className="task-item" key={task._id}>
+          <div>
+            <h3>{task.title}</h3>
+            <p>{task.description}</p>
+          </div>
+
+          <span>{task.status}</span>
+        </div>
+      ))}
+    </div>
+  )}
+</section>
+  </main>
+</div>
     ) : (
       <div className="login-page">
         <div className="login-card">
