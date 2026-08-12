@@ -5,6 +5,7 @@ function App() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
+  const [editingTask, setEditingTask] = useState(null);
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState(null);
   const [tasks, setTasks] = useState([]);
@@ -160,7 +161,56 @@ useEffect(() => {
   } catch (error) {
     console.error("CREATE TASK ERROR:", error);
   }
+  
 };
+const startEditTask = (task) => {
+  setEditingTask(task);
+};
+const updateTask = async () => {
+  const token = localStorage.getItem("token");
+
+  if (!token || !editingTask) {
+    return;
+  }
+
+  try {
+    const response = await fetch(
+      `http://localhost:5000/api/tasks/${editingTask._id}`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          title: editingTask.title,
+          description: editingTask.description,
+          status: editingTask.status,
+          priority: editingTask.priority,
+        }),
+      }
+    );
+
+    const data = await response.json();
+
+    console.log("UPDATE TASK RESPONSE:", data);
+
+    if (!response.ok) {
+      console.error("UPDATE TASK FAILED:", data.message);
+      return;
+    }
+
+    // Get fresh data from backend
+    await fetchTasks();
+
+    // Close edit form
+    setEditingTask(null);
+
+  } catch (error) {
+    console.error("UPDATE TASK ERROR:", error);
+  }
+};
+  
   return (
     
   <>
@@ -288,22 +338,102 @@ useEffect(() => {
 
     </div>
   )}
+    {editingTask && (
+  <div className="create-task-form">
+    <h3>Edit Task</h3>
 
+    <input
+      type="text"
+      value={editingTask.title}
+      onChange={(e) =>
+        setEditingTask({
+          ...editingTask,
+          title: e.target.value,
+        })
+      }
+    />
+
+    <textarea
+      value={editingTask.description}
+      onChange={(e) =>
+        setEditingTask({
+          ...editingTask,
+          description: e.target.value,
+        })
+      }
+    />
+
+    <div className="task-options">
+      <select
+        value={editingTask.status}
+        onChange={(e) =>
+          setEditingTask({
+            ...editingTask,
+            status: e.target.value,
+          })
+        }
+      >
+        <option value="todo">Todo</option>
+        <option value="in-progress">In Progress</option>
+        <option value="completed">Completed</option>
+      </select>
+
+      <select
+        value={editingTask.priority}
+        onChange={(e) =>
+          setEditingTask({
+            ...editingTask,
+            priority: e.target.value,
+          })
+        }
+      >
+        <option value="low">Low</option>
+        <option value="medium">Medium</option>
+        <option value="high">High</option>
+      </select>
+    </div>
+
+    <div className="task-form-actions">
+     <button
+  type="button"
+  className="submit-task-btn"
+  onClick={updateTask}
+>
+  Save Changes
+</button>
+
+      <button
+        type="button"
+        className="cancel-task-btn"
+        onClick={() => setEditingTask(null)}
+      >
+        Cancel
+      </button>
+    </div>
+  </div>
+)}
   {tasks.length === 0 ? (
     <p>No tasks yet.</p>
   ) : (
     <div className="task-list">
       {tasks.map((task) => (
-        <div className="task-item" key={task._id}>
+       <div className="task-item" key={task._id}>
+  <div>
+    <h3>{task.title}</h3>
+    <p>{task.description}</p>
+  </div>
 
-          <div>
-            <h3>{task.title}</h3>
-            <p>{task.description}</p>
-          </div>
+  <div className="task-actions">
+    <span>{task.status}</span>
 
-          <span>{task.status}</span>
-
-        </div>
+    <button
+  type="button"
+  onClick={() => startEditTask(task)}
+>
+  Edit
+</button>
+  </div>
+</div>
       ))}
     </div>
   )}

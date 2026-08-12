@@ -392,3 +392,41 @@
   font-size: 13px;
   font-weight: 600;
 }
+.task-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.task-actions button {
+  padding: 8px 14px;
+  border: none;
+  border-radius: 7px;
+  background: #6366f1;
+  color: white;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.task-actions button:hover {
+  background: #4f46e5;
+}
+
+.task-actions button:active {
+  transform: scale(0.97);
+}
+.edit-task-btn {
+  padding: 8px 14px;
+  border: none;
+  border-radius: 7px;
+  background: #6366f1;
+  color: white;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.edit-task-btn:hover {
+  background: #4f46e5;
+}
