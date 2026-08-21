@@ -1,4 +1,4 @@
-const { body, validationResult } = require("express-validator");
+const { body } = require("express-validator");
 
 const registerValidation = [
   body("name")
@@ -15,20 +15,23 @@ const registerValidation = [
     .withMessage("Password must be at least 6 characters"),
 ];
 
-const validate = (req, res, next) => {
-  const errors = validationResult(req);
+const updateProfileValidation = [
+  body("name")
+    .optional()
+    .trim()
+    .notEmpty()
+    .withMessage("Name cannot be empty")
+    .isLength({ max: 80 })
+    .withMessage("Name cannot exceed 80 characters"),
 
-  if (!errors.isEmpty()) {
-    return res.status(400).json({
-      success: false,
-      errors: errors.array(),
-    });
-  }
-
-  next();
-};
+  body("avatar")
+    .optional({ checkFalsy: true })
+    .trim()
+    .isURL()
+    .withMessage("Avatar must be a valid URL"),
+];
 
 module.exports = {
   registerValidation,
-  validate,
+  updateProfileValidation,
 };

@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
-    "test": "jest"
+    "test": "node --test tests/health.test.js tests/api.test.js"
   },
   "keywords": [],
   "author": "",

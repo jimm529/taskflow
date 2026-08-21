@@ -16,6 +16,15 @@ const generateToken = (userId) => {
   );
 };
 
+const toPublicUser = (user) => ({
+  id: user._id,
+  name: user.name,
+  email: user.email,
+  avatar: user.avatar,
+  createdAt: user.createdAt,
+  updatedAt: user.updatedAt,
+});
+
 const registerUser = async ({ name, email, password }) => {
   // Check if the email already exists
   const existingUser = await User.findOne({ email });
@@ -34,14 +43,7 @@ const registerUser = async ({ name, email, password }) => {
     password: hashedPassword,
   });
 
-  return {
-    id: user._id,
-    name: user.name,
-    email: user.email,
-    avatar: user.avatar,
-    createdAt: user.createdAt,
-    updatedAt: user.updatedAt,
-  };
+  return toPublicUser(user);
 };
 
 const loginUser = async ({ email, password }) => {
@@ -66,18 +68,35 @@ const loginUser = async ({ email, password }) => {
 
   return {
     token,
-    user: {
-      id: user._id,
-      name: user.name,
-      email: user.email,
-      avatar: user.avatar,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
-    },
+    user: toPublicUser(user),
   };
+};
+
+const updateUserProfile = async ({ userId, name, avatar }) => {
+  const updates = {};
+
+  if (name !== undefined) {
+    updates.name = name;
+  }
+
+  if (avatar !== undefined) {
+    updates.avatar = avatar || "";
+  }
+
+  const user = await User.findByIdAndUpdate(userId, updates, {
+    new: true,
+    runValidators: true,
+  });
+
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  return toPublicUser(user);
 };
 
 module.exports = {
   registerUser,
   loginUser,
+  updateUserProfile,
 };

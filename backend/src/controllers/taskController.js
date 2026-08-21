@@ -4,6 +4,7 @@ const {
   getTaskByIdAndOwner,
   updateTaskByIdAndOwner,
   deleteTaskByIdAndOwner,
+  getTaskStatsByOwner,
 } = require("../services/taskService");
 
 const create = async (req, res) => {
@@ -30,11 +31,11 @@ const getMyTasks = async (req, res) => {
   try {
     const result = await getTasksByOwner(req.user._id, req.query);
 
-res.status(200).json({
-  success: true,
-  count: result.total,
-  tasks: result.tasks,
-});
+    res.status(200).json({
+      success: true,
+      count: result.total,
+      tasks: result.tasks,
+    });
   } catch (error) {
     const statusCode = error.message.startsWith("Invalid") ? 400 : 500;
 
@@ -71,6 +72,22 @@ const getTask = async (req, res) => {
   }
 };
 
+const getTaskStats = async (req, res) => {
+  try {
+    const stats = await getTaskStatsByOwner(req.user._id);
+
+    res.status(200).json({
+      success: true,
+      stats,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 const updateTask = async (req, res) => {
   try {
     const task = await updateTaskByIdAndOwner({
@@ -92,7 +109,9 @@ const updateTask = async (req, res) => {
       task,
     });
   } catch (error) {
-    res.status(400).json({
+    const statusCode = error.message.includes("Only") ? 403 : 400;
+
+    res.status(statusCode).json({
       success: false,
       message: error.message,
     });
@@ -118,9 +137,11 @@ const deleteTask = async (req, res) => {
       message: "Task deleted successfully",
     });
   } catch (error) {
-    res.status(400).json({
+    const statusCode = error.message.includes("Only") ? 403 : 400;
+
+    res.status(statusCode).json({
       success: false,
-      message: "Invalid task id",
+      message: statusCode === 403 ? error.message : "Invalid task id",
     });
   }
 };
@@ -129,6 +150,7 @@ module.exports = {
   create,
   getMyTasks,
   getTask,
+  getTaskStats,
   updateTask,
   deleteTask,
 };

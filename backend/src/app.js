@@ -1,19 +1,30 @@
 const express = require("express");
 const cors = require("cors");
+const helmet = require("helmet");
+const morgan = require("morgan");
 
 const authRouter = require("./routes/authRoutes");
 const healthRoutes = require("./routes/health.routes");
+const projectRoutes = require("./routes/projectRoutes");
 const taskRoutes = require("./routes/taskRoutes");
 
 const app = express();
- app.use(
+
+const allowedOrigins = (process.env.CLIENT_URL || "http://localhost:5173")
+  .split(",")
+  .map((origin) => origin.trim());
+
+app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: allowedOrigins,
   })
 );
+app.use(helmet());
+app.use(morgan("dev"));
 app.use(express.json());
 
 app.use("/api/auth", authRouter);
+app.use("/api/projects", projectRoutes);
 app.use("/api/tasks", taskRoutes);
 app.use("/api/v1/health", healthRoutes);
 
